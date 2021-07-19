@@ -29,12 +29,23 @@ jobs:
         BASE_BRANCH=$(node -p -e "require('./package.json').version.slice(0, 4).replace('.', '_')")
         test -d ../devextreme-repo || git clone -b $BASE_BRANCH https://github.com/devexpress/devextreme ../devextreme-repo
 
+    - name: Clone devextreme-angular repo
+      run: |
+        git clone https://github.com/devexpress/devextreme-angular ../devextreme-angular
+
+    - name: Clone devextreme-react repo
+      run: |
+        git clone https://github.com/devexpress/devextreme-react ../devextreme-react
+
+    - name: Clone devextreme-vue repo
+      run: |
+        git clone https://github.com/devexpress/devextreme-vue ../devextreme-vue
+
     #Build Devextreme
     - name: DevExtreme - Generate package-lock
       run: |
         cd ../devextreme-repo
         test -f package-lock.json || npm i --package-lock-only
-
 
     - name: DevExtreme - Install packages
       run: |
@@ -44,12 +55,82 @@ jobs:
     - name: DevExtreme - Build
       run: |
         cd ../devextreme-repo
-        npm run build
+        npm run build-dist
 
-    - name: DevExtreme - Pack
+    #Build Devextreme-react
+    - name: Devextreme-React - Install devextreme package
       run: |
-        cd ../devextreme-repo/artifacts/npm/devextreme
-        npm pack
+        cd ../devextreme-react/packages/devextreme-react
+        npm install --save-dev ../../../devextreme-repo/artifacts/npm/devextreme
+
+    - name: Devextreme-React - Run npm install
+      run: |
+        cd ../devextreme-react
+        npm ci --no-audit --no-fund
+
+    - run: |
+        cd ../devextreme-react
+        npm run bootstrap
+
+    - name: Devextreme-React - Build
+      run: |
+        cd ../devextreme-react
+        npm run pack
+    
+    - name: Devextreme-React - Pack
+      run: |
+        cd ../devextreme-react/packages/devextreme-react
+        npm run pack
+
+    #Build Devextreme-angular
+    # - name: Devextreme-Angular - Install devextreme package
+    #   run: |
+    #     cd ../devextreme-angular/packages/devextreme-angular
+    #     npm install --save-dev ../../../devextreme-repo/artifacts/npm/devextreme
+
+    # - name: Devextreme-Angular - Run npm install
+    #   run: |
+    #     cd ../devextreme-angular
+    #     npm install --no-audit --no-fund
+
+    # - run: |
+    #     cd ../devextreme-angular
+    #     npm run bootstrap
+
+    # - name: Devextreme-Angular - Build
+    #   run: |
+    #     cd ../devextreme-angular
+    #     npm run pack
+
+    # - name: Devextreme-Angular - Pack
+    #   run: |
+    #     cd ../devextreme-angular/packages/devextreme-angular
+    #     npm pack
+
+    #Build Devextreme-vue
+    # - name: Devextreme-Vue - Install devextreme package
+    #   run: |
+    #     cd ../devextreme-vue/packages/devextreme-vue
+    #     npm install --save-dev ../../../devextreme-repo/artifacts/npm/devextreme
+
+    # - name: Devextreme-Vue - Run npm install
+    #   run: |
+    #     cd ../devextreme-vue
+    #     npm ci --no-audit --no-fund
+
+    # - run: |
+    #     cd ../devextreme-vue
+    #     npm run bootstrap
+
+    # - name: Devextreme-Vue - Build
+    #   run: |
+    #     cd ../devextreme-vue
+    #     npm run pack
+
+    # - name: Devextreme-Vue - Pack
+    #   run: |
+    #     cd ../devextreme-vue/packages/devextreme-vue
+    #     npm run pack
 
     #Build Demos
     - name: Demos - Generate package-lock
@@ -72,6 +153,21 @@ jobs:
       run: |
         rm -rf ./node_modules/devextreme
         npm install --no-package-lock $(find ../devextreme-repo/artifacts/npm/devextreme/ -maxdepth 1 -name "devextreme-*.tgz")
+
+    - name: Demos - Install devextreme-react package
+      run: |
+        rm -rf ./node_modules/devextreme-react
+        npm install --no-package-lock $(find ../devextreme-react/ -name "devextreme-react*.tgz")
+
+    # - name: Demos - Install devextreme-vue package
+    #   run: |
+    #     rm -rf ./node_modules/devextreme-vue
+    #     npm install --no-package-lock $(find ../devextreme-vue/ -name "devextreme-vue*.tgz")
+
+    # - name: Demos - Install devextreme-angular package
+    #   run: |
+    #     rm -rf ./node_modules/devextreme-angular
+    #     npm install --no-package-lock $(find ../devextreme-angular/ -maxdepth 1 -name "devextreme-angular*.tgz")
 
     - name: Demos - Prepare bundles
       run: npm run prepare-bundles
